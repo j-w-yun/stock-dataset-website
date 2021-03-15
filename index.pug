@@ -1,0 +1,411 @@
+extends ../layout
+
+block stylesheets
+	meta(name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no')
+	link(rel='stylesheet' href='/ace/res/stylesheets/editor.css')
+	link(rel='stylesheet' href='style.css')
+
+block scripts
+	script(src='/ace/src-noconflict/ace.js')
+	script(src='/ace/src-noconflict/ext-language_tools.js')
+	script(src='/ace/editor.js')
+	script(src='/ace/beautify.js')
+	script(src='d3.min.js')
+	script(src='cloud.min.js')
+	script(src='social_stock.js')
+
+	style.
+		.table_container {
+			display: flex;
+			flex-direction: column;
+			flex-grow: 1;
+			// flex-shrink: 1;
+			position: relative;
+			width: 100%;
+			overflow: auto;
+			border: 1px solid rgba(0, 0, 0, 0.2);
+		}
+		.my_table {
+			position: relative;
+			text-align: left;
+			width: 100%;
+			border: 1px solid rgba(0, 0, 0, 0.2);
+		}
+		.my_table tr {
+			z-index: 1;
+		}
+		.my_table tr:hover {
+			background-color: rgba(20, 20, 20, 0.1);
+			// transition: 200ms background-color;
+		}
+		.my_table th {
+			background-color: rgba(240, 240, 240, 0.5);
+			color: #000;
+			position: sticky;
+			top: 0;
+			height: 40px;
+			margin: 0;
+			padding: 0 8px;
+			font-size: 0.9em;
+			white-space: wrap;
+			backdrop-filter: blur(4px);
+			z-index: 2;
+			border: none;
+		}
+		.my_table td {
+			position: relative;
+			margin: none;
+			border: none;
+			border-right: 1px solid rgba(0, 0, 0, 0.5);
+			border-top: 1px solid transparent;
+		}
+		.my_table td .tooltip {
+			background-color: rgba(240, 240, 240, 0.8);
+			color: #000;
+			position: absolute;
+			top: 0;
+			left: 0;
+			max-height: 150px;
+			max-width: 400px;
+			overflow: auto;
+			padding: 4px;
+			border-radius: 4px;
+			border: 1px solid rgba(0, 0, 0, 0.4);
+			font-size: 1.1em;
+			z-index: 1;
+			opacity: 0;
+			// transition: 500ms opacity;
+		}
+		.my_table td:hover .tooltip {
+			opacity: 1;
+		}
+		#data_table th {
+			cursor: pointer;
+		}
+		.my_table th,
+		.my_table td,
+		.cell {
+			color: rgba(20, 20, 20, 0.6);
+			font-size: 12px;
+			min-width: 150px;
+			max-width: 250px;
+			max-height: 12px;
+			min-height: 12px;
+			line-height: 12px;
+			outline: none;
+		}
+		.cell {
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			padding: 0 4px;
+			margin: 0;
+			font-size: 0.9em;
+		}
+		.null_cell {
+			// background: rgba(255, 204, 225, 0.4) !important;
+			color: #99F;
+			font-weight: bold;
+		}
+
+		.table_dropdown_row,
+		.table_dropdown_row > * {
+			height: 30px;
+		}
+		.table_button_row {
+			display: flex;
+			flex-direction: row;
+			flex-wrap: nowrap;
+			width: 100%;
+			height: 50px;
+			margin: 8px 0;
+		}
+		.table_button_row input {
+			height: 30px;
+			line-height: 30px;
+			padding: 0;
+			margin: 10px 4px;
+		}
+		#prev_page, #next_page,
+		#first_page, #last_page {
+			width: 32px;
+		}
+		.page_buttons {
+			display: flex;
+			flex-direction: row;
+			flex-wrap: nowrap;
+			text-align: center;
+			height: 50px;
+		}
+		.page_buttons > div {
+			flex-grow: 0;
+			width: 28px;
+			height: 30px;
+			line-height: 30px;
+			margin: 10px;
+			padding: 0;
+			cursor: pointer;
+			border-bottom: 2px solid rgba(220, 230, 250, 0);
+			font-size: 0.8em;
+		}
+		.page_buttons > div:hover {
+			color: #99f;
+			border-bottom: 2px solid rgba(220, 230, 250, 0.9);
+			transition: 500ms border-bottom, 500ms color;
+		}
+		.page_buttons > .selected_page_number {
+			font-weight: bold;
+			border-bottom: 2px solid rgba(220, 230, 250, 0.9);
+		}
+
+		.editor_view #script_editor,
+		.editor_view #console_editor {
+			flex-grow: 1;
+			flex-shrink: 1;
+			position: relative;
+		}
+		.editor_view #script_editor {
+			height: 50%;
+			margin-bottom: 8px;
+		}
+		.editor_view #console_editor {
+			height: 50%;
+			margin-top: 8px;
+		}
+
+		.editor_buttons {
+			display: flex;
+			flex-direction: row;
+			flex-wrap: nowrap;
+			overflow: hidden;
+		}
+		.editor_buttons,
+		.editor_buttons > * {
+			max-height: 30px !important;
+		}
+		.editor_buttons input {
+			flex-grow: 1;
+			display: flex;
+			justify-content: center;
+			height: 30px;
+			line-height: 30px;
+			padding: 0;
+			// width: 50%;
+			// margin: 10px 4px;
+		}
+
+		.status_bar {
+			display: flex;
+			flex-direction: column;
+			width: 100%;
+			height: 50px;
+			margin: 8px 0;
+		}
+		.status_bar > div {
+			display: flex;
+			flex-direction: row;
+			flex-wrap: nowrap;
+			width: 100%;
+			height: 25px;
+		}
+		.status_bar > div > div {
+			color: rgba(0, 0, 0, 0.7);
+			font-weight: bold;
+			height: 25px;
+			line-height: 25px;
+		}
+		.status_bar .label {
+			margin: 0 4px;
+			font-weight: normal;
+		}
+
+		.filler {
+			min-height: 8px;
+		}
+
+		.chart_container {
+			flex-grow: 1;
+			display: flex;
+			flex-direction: row;
+			flex-wrap: nowrap;
+		}
+		#chart_canvas_container {
+			flex-grow: 1;
+			width: 100%;
+			height: 100%;
+		}
+		#chart_info_container {
+			flex-grow: 0;
+			flex-shrink: 0;
+			display: flex;
+			flex-direction: column;
+			width: 500px;
+		}
+		#word_buttons_container {
+			padding: 8px 8px 4px 0;
+		}
+		#word_table_container {
+			padding: 4px 8px 4px 0;
+		}
+		#word_cloud_container {
+			padding: 4px 8px 8px 0;
+		}
+		#word_cloud_container,
+		#word_table_container {
+			flex-grow: 1;
+			// max-height: 50%;
+			position: relative;
+			// overflow: auto;
+		}
+		#word_table_container {
+			position: relative;
+			flex-grow: 1;
+			flex-shrink: 1;
+			display: flex;
+			flex-direction: column;
+			height: 50%;
+			// padding: 8px;
+		}
+		#chart_canvas {
+			flex-grow: 1;
+			width: 100%;
+			height: 100%;
+		}
+
+		#word_cloud_svg {
+			position: relative;
+			width: 100%;
+			height: 100%;
+			// padding: 8px 8px 8px 0;
+		}
+		#word_cloud_g {
+			position: absolute;
+			top: 0;
+			bottom: 0;
+			left: 0;
+			right: 0;
+		}
+
+		#word_table td {
+			height: 20px;
+		}
+
+		.spacer {
+			margin: auto;
+		}
+		.overlay {
+			background-color: rgba(0, 0, 0, 0.8);
+			backdrop-filter: blur(6px);
+			display: block;
+			position: absolute;
+			top: 0;
+			bottom: 0;
+			left: 0;
+			right: 0;
+			z-index: 10000;
+		}
+
+
+block content
+	div.alert_container
+		div.alert Copied to clipboard!
+	div.main_container
+		div.overlay
+		div.tutorial_message_container
+			div.tutorial_message
+				div.message
+				div.tutorial_button_container
+					div.spacer
+					input#skip_tutorial.btn.btn-outline-light(type='button' value='Skip')
+					input#next_tutorial.btn.btn-outline-light(type='button' value='Next')
+
+		div.tabs
+			div.tab(data-target='.database_container') Database
+			div.tab.active(data-target='.chart_container') Chart
+
+		div.chart_container
+			div#chart_canvas_container
+				canvas#chart_canvas(oncontextmenu='return false;')
+			div#chart_info_container
+				div#word_buttons_container.input-group
+					div.input-group-prepend
+						label.input_label.input-group-text Ticker
+					select#ticker_select.input_field.custom-select(disabled)
+
+					div.input-group-prepend
+						label.input_label.input-group-text Platform
+					select#chart_type_select.input_field.custom-select(disabled)
+						option(value='Reddit' selected) Reddit
+						option(value='Twitter') Twitter
+
+				div#word_table_container
+					div.table_container
+						table#word_table.my_table
+				div#word_cloud_container
+					div.loading#loading2(style='display: none;')
+						div.spinning_loader
+							div.spinner
+					svg#word_cloud_svg
+						g#word_cloud_g
+
+		div.database_container
+			div.table_view
+				div.loading#loading1
+					div.spinning_loader
+						div.spinner
+				div.table_dropdown_row.input-group
+					div.input-group-prepend
+						label.input_label.input-group-text Category
+					select#table_type_select.input_field.custom-select
+						option(value='All' selected) All
+						option(value='Symbols') Information
+						option(value='Finance') Finance
+						option(value='Reddit') Reddit
+						option(value='Twitter') Twitter
+					div.input-group-prepend
+						label.input_label.input-group-text Table
+					select#table_select.input_field.custom-select
+				div.filler
+				div#data_table_container.table_container
+					table#data_table.my_table
+				div.table_button_row
+					div(style='margin: auto;')
+					input#first_page.btn.btn-light(type='button' value='<<')
+					input#prev_page.btn.btn-light(type='button' value='<')
+					div.page_buttons
+					input#next_page.btn.btn-light(type='button' value='>')
+					input#last_page.btn.btn-light(type='button' value='>>')
+					div(style='margin: auto;')
+
+			div.collapse_view_button
+				div.icon >
+
+			div.editor_view
+				div.editor_buttons
+					input#execute_button.btn.btn-light(type='button' value='Query')
+					input#reset_query_button.btn.btn-light(type='button' value='Reset')
+				div.filler
+				div#script_editor
+				div#console_editor
+				div.status_bar
+					div
+						div.num_rows -
+						div.label rows,
+						div.db_size -
+						div.label GB scraped.
+						// div.now_perc -
+						// div.label of
+						// div.num_tables -
+						// div.label tables.
+						// div.label Plenty more to come.
+						div(style='margin: auto;')
+					div
+						div.rem_rows -
+						div.label rows,
+						div.rem_size -
+						div.label GB remaining.
+
+		div#github_icon
+			a(href='https://github.com/Jaewan-Yun/social_stocks_scraper' target='#')
+				svg(height='32' class='octicon octicon-mark-github text-white' viewBox='0 0 16 16' version='1.1' width='32' aria-hidden='true')
+					path(fill-rule='evenodd' d='M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z')
